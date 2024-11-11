@@ -22,7 +22,7 @@ def get_war_stats(request, clan_tag):
 
         # Prepare headers with the JWT token from the .env file
         headers = {
-            "Authorization": f"Bearer {settings.COC_API_TOKEN}"
+            "Authorization": f"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjQ5MzVhZWIxLTM1MjctNGVmNC1iYjk3LWU4YTMyNzBiM2EyNyIsImlhdCI6MTczMTE2MzYzNiwic3ViIjoiZGV2ZWxvcGVyLzdlZGE5ODZkLTczZTQtNTkxMS02MmU1LTg3NDc3NDM3NmI1OCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjEwMy44Ny45NC4xNDAiXSwidHlwZSI6ImNsaWVudCJ9XX0.RdJCeVDssNcu5wJJzg7WzlTm_PGLsjWLemqop_oOQsipCSWRq3XLtLQHUWJKUGBnKcPhS0gY5AGPKM-T4uhYvw"
         }
 
         # Fetch data from the Clash of Clans API
