@@ -1,6 +1,6 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.conf import settings
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from django.conf import settings
 import requests
 from urllib.parse import quote
 from django.http import JsonResponse
