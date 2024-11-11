@@ -1,0 +1,13 @@
+{
+    "builds": [{
+        "src": "clash_api/wsgi.py",
+        "use": "@vercel/python",
+        "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+    }],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "clash_api/wsgi.py"
+        }
+    ]
+}
