@@ -60,80 +60,64 @@ def calculate_war_statistics(data):
         opponent_percentage = opponent_data.get("destructionPercentage", 0)
         end_time_str = data.get("endTime", "")
 
-        total_attack_time = 0
-        total_attacks = 0
-        ratios = {"16v16": 0, "15v15": 0, "14v14": 0}
-        th16v16_stars = 0
-        th15v15_stars = 0
-        th14v14_stars = 0
-
         # Lookup dictionaries for opponent and clan TH levels by tag
         opponent_th_levels = {member["tag"]: member.get("townhallLevel", 0) for member in opponent_data.get("members", [])}
         clan_th_levels = {member["tag"]: member.get("townhallLevel", 0) for member in clan_data.get("members", [])}
+
+        # Initialize breakdown data
+        breakdown = {
+            "17v17": {"clanStars": 0, "opponentStars": 0},
+            "16v16": {"clanStars": 0, "opponentStars": 0},
+            "15v15": {"clanStars": 0, "opponentStars": 0},
+            "14v14": {"clanStars": 0, "opponentStars": 0}
+        }
 
         # Process clan's attacks
         for member in clan_data.get("members", []):
             th_level = member.get("townhallLevel", 0)
             for attack in member.get("attacks", []):
-                total_attack_time += attack.get("duration", 0)
-                total_attacks += 1
                 defender_th = opponent_th_levels.get(attack.get("defenderTag"))
 
-                # Count stars only for specific TH matchups
+                # Count stars for specific TH matchups
                 if th_level == 16 and defender_th == 16:
-                    ratios["16v16"] += 1
-                    th16v16_stars += attack["stars"]
+                    breakdown["16v16"]["clanStars"] += attack["stars"]
                 elif th_level == 15 and defender_th == 15:
-                    ratios["15v15"] += 1
-                    th15v15_stars += attack["stars"]
+                    breakdown["15v15"]["clanStars"] += attack["stars"]
                 elif th_level == 14 and defender_th == 14:
-                    ratios["14v14"] += 1
-                    th14v14_stars += attack["stars"]
+                    breakdown["14v14"]["clanStars"] += attack["stars"]
 
         # Process opponent's attacks
         for member in opponent_data.get("members", []):
             th_level = member.get("townhallLevel", 0)
             for attack in member.get("attacks", []):
-                total_attack_time += attack.get("duration", 0)
-                total_attacks += 1
                 defender_th = clan_th_levels.get(attack.get("defenderTag"))
 
-                # Count stars only for specific TH matchups
+                # Count stars for specific TH matchups
                 if th_level == 16 and defender_th == 16:
-                    ratios["16v16"] += 1
-                    th16v16_stars += attack["stars"]
+                    breakdown["16v16"]["opponentStars"] += attack["stars"]
                 elif th_level == 15 and defender_th == 15:
-                    ratios["15v15"] += 1
-                    th15v15_stars += attack["stars"]
+                    breakdown["15v15"]["opponentStars"] += attack["stars"]
                 elif th_level == 14 and defender_th == 14:
-                    ratios["14v14"] += 1
-                    th14v14_stars += attack["stars"]
+                    breakdown["14v14"]["opponentStars"] += attack["stars"]
 
-        avg_attack_time = total_attack_time / total_attacks if total_attacks > 0 else 0
-
-        # Convert endTime to local time format based on system's timezone
-        if end_time_str: 
-            end_time_utc = datetime.strptime(end_time_str, "%Y%m%dT%H%M%S.%fZ")
-            utc_zone = pytz.utc
-            local_zone = get_localzone()  # Automatically get system's local timezone
-            end_time_local = utc_zone.localize(end_time_utc).astimezone(local_zone)
-            end_time_local_str = end_time_local.strftime("%Y-%m-%d %H:%M:%S %Z%z")
-        else:
-            end_time_local_str = "N/A"
-
-        # Return the calculated statistics
-        return {
-            "clan_score": clan_score,
-            "opponent_score": opponent_score,
-            "clan_percentage": clan_percentage,
-            "opponent_percentage": opponent_percentage,
-            "average_attack_time": avg_attack_time,
-            "ratios": ratios,
-            "th16v16_stars": th16v16_stars,
-            "th15v15_stars": th15v15_stars,
-            "th14v14_stars": th14v14_stars,
-            "end_time_local": end_time_local_str  # Local time formatted end time
+        # Prepare the final output structure without hardcoded names
+        result = {
+            "clan": {
+                "name": clan_data.get("name"),
+                "badgeUrl": clan_data.get("badgeUrls", {}).get("medium", ""),
+                "totalStars": clan_score,
+                "destructionPercentage": clan_percentage
+            },
+            "opponent": {
+                "name": opponent_data.get("name"),
+                "badgeUrl": opponent_data.get("badgeUrls", {}).get("medium", ""),
+                "totalStars": opponent_score,
+                "destructionPercentage": opponent_percentage
+            },
+            "breakdown": breakdown
         }
+
+        return result
 
     except Exception as e:
         # Log or handle the exception and return an error message
