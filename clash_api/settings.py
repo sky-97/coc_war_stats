@@ -32,7 +32,7 @@ COC_API_TOKEN = os.getenv("COC_API_TOKEN")
 DEBUG = True
 
 # api/settings.py
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '137.184.60.149']
 
 # Application definition
 
