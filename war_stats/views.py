@@ -1,6 +1,6 @@
 # from rest_framework.decorators import api_view
 # from rest_framework.response import Response
-# from django.conf import settings
+from django.conf import settings
 import requests
 from urllib.parse import quote
 from django.http import JsonResponse
@@ -8,22 +8,26 @@ from datetime import datetime
 import pytz
 from tzlocal import get_localzone  # To detect local timezone
 
+
+
 def get_war_stats(request, clan_tag):
     try:
         # Check if clan_tag is provided
         if not clan_tag:
             return JsonResponse({"error": "Clan tag is required"}, status=400)
 
-        # URL encode the clan_tag to ensure special characters are handled properly
-        encoded_clan_tag = quote(clan_tag)
+        # Replace # with %23 if present in clan_tag
+        clan_tag = clan_tag.replace("#", "%23")
 
         # Prepare Clash of Clans API URL
-        coc_api_url = f"https://api.clashofclans.com/v1/clans/{encoded_clan_tag}/currentwar"
+        coc_api_url = f"https://api.clashofclans.com/v1/clans/{clan_tag}/currentwar"
 
         # Prepare headers with the JWT token from the .env file
         headers = {
-            "Authorization": f"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjQ5MzVhZWIxLTM1MjctNGVmNC1iYjk3LWU4YTMyNzBiM2EyNyIsImlhdCI6MTczMTE2MzYzNiwic3ViIjoiZGV2ZWxvcGVyLzdlZGE5ODZkLTczZTQtNTkxMS02MmU1LTg3NDc3NDM3NmI1OCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjEwMy44Ny45NC4xNDAiXSwidHlwZSI6ImNsaWVudCJ9XX0.RdJCeVDssNcu5wJJzg7WzlTm_PGLsjWLemqop_oOQsipCSWRq3XLtLQHUWJKUGBnKcPhS0gY5AGPKM-T4uhYvw"
+            "Authorization": f"Bearer {settings.COC_API_TOKEN}"
         }
+
+        print('<---headers---->', headers)
 
         # Fetch data from the Clash of Clans API
         response = requests.get(coc_api_url, headers=headers)
@@ -50,6 +54,9 @@ def get_war_stats(request, clan_tag):
     except Exception as e:
         # Catch other errors, including issues with the war data or calculation
         return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
+    
+
+
     
 def calculate_war_statistics(data):
     try:
