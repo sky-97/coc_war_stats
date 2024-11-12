@@ -12,22 +12,13 @@ from tzlocal import get_localzone  # To detect local timezone
 
 def get_war_stats(request, clan_tag):
     try:
-        # Check if clan_tag is provided
-        if not clan_tag:
-            return JsonResponse({"error": "Clan tag is required"}, status=400)
-
-        # Replace # with %23 if present in clan_tag
-        clan_tag = clan_tag.replace("#", "%23")
-
-        # Prepare Clash of Clans API URL
-        coc_api_url = f"https://api.clashofclans.com/v1/clans/{clan_tag}/currentwar"
+        # Prepare Clash of Clans API URL with the plain clan tag
+        coc_api_url = f"https://api.clashofclans.com/v1/clans/%23{clan_tag}/currentwar"  # Add %23 manually here
 
         # Prepare headers with the JWT token from the .env file
         headers = {
             "Authorization": f"Bearer {settings.COC_API_TOKEN}"
         }
-
-        print('<---headers---->', headers)
 
         # Fetch data from the Clash of Clans API
         response = requests.get(coc_api_url, headers=headers)
