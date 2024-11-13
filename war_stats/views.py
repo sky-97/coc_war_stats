@@ -8,7 +8,10 @@ from datetime import datetime
 import pytz
 from tzlocal import get_localzone  # To detect local timezone
 
+from django.shortcuts import render
 
+def war_stats(request):
+    return render(request, 'war_stats/war_stats.html')
 
 def get_war_stats(request, clan_tag):
     try:

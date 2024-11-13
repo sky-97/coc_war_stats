@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>War Stats</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #333333;
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        width: 250px;
+        background-color: #222;
+        padding: 20px;
+        border: 2px solid #ffcc00;
+        text-align: center;
+        color: #ffcc00;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .box {
+        width: 50px;
+        height: 50px;
+        border: 2px solid #ffcc00;
+        background-color: #000;
+        color: #ffcc00;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .small-box {
+        width: 80px;
+        height: 30px;
+        border: 2px solid #ffcc00;
+        background-color: #000;
+        margin: 0 5px; /* Add a small margin for space */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #ffcc00;
+      }
+
+      .text {
+        font-size: 18px;
+        margin: 10px 0;
+      }
+
+      .vs {
+        margin: 10px 0;
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      .button {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border: 2px solid #ffcc00;
+        color: #ffcc00;
+        background-color: #000;
+        cursor: pointer;
+        text-align: center;
+        font-size: 18px;
+      }
+
+      .button-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .left-side,
+      .right-side {
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="box" id="clanTotalStars">0</div>
+        <div class="text">BREAKDOWN</div>
+        <div class="box" id="opponentTotalStars">0</div>
+      </div>
+
+      <div class="row" style="justify-content: center">
+        <div class="small-box" id="clanDestructionPercentage">0%</div>
+        <div class="text" style="margin: 0 10px">%</div>
+        <div class="small-box" id="opponentDestructionPercentage">0%</div>
+      </div>
+
+      <div class="vs">VS</div>
+
+      <!-- Matchup Buttons -->
+      <div class="button" id="17v17">
+        <div class="button-content">
+          <span class="left-side" id="17v17-clanStars">0</span>
+          17v17
+          <span class="right-side" id="17v17-opponentStars">0</span>
+        </div>
+      </div>
+
+      <div class="button" id="16v16">
+        <div class="button-content">
+          <span class="left-side" id="16v16-clanStars">0</span>
+          16v16
+          <span class="right-side" id="16v16-opponentStars">0</span>
+        </div>
+      </div>
+
+      <div class="button" id="15v15">
+        <div class="button-content">
+          <span class="left-side" id="15v15-clanStars">0</span>
+          15v15
+          <span class="right-side" id="15v15-opponentStars">0</span>
+        </div>
+      </div>
+
+      <div class="button" id="14v14">
+        <div class="button-content">
+          <span class="left-side" id="14v14-clanStars">0</span>
+          14v14
+          <span class="right-side" id="14v14-opponentStars">0</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Set your clan tag here
+      const clanTag = "9C8RYV90"; // Replace with the actual clan tag
+
+      // Function to fetch war stats by clan tag
+      function fetchWarStats(clanTag) {
+        fetch(`/api/war-stats/${clanTag}/`) // Use the dynamic clan tag in the URL
+          .then((response) => response.json())
+          .then((data) => updateStats(data))
+          .catch((error) => console.error("Error fetching war stats:", error));
+      }
+
+      // Update the stats on the page based on the fetched data
+      function updateStats(data) {
+        // Update total stars and destruction percentage for clan and opponent
+        document.getElementById("clanTotalStars").textContent =
+          data.clan.totalStars;
+        document.getElementById("opponentTotalStars").textContent =
+          data.opponent.totalStars;
+
+        document.getElementById(
+          "clanDestructionPercentage"
+        ).textContent = `${data.clan.destructionPercentage}%`;
+        document.getElementById(
+          "opponentDestructionPercentage"
+        ).textContent = `${data.opponent.destructionPercentage}%`;
+
+        // Update Matchup buttons
+        updateMatchup("17v17", data.breakdown["17v17"]);
+        updateMatchup("16v16", data.breakdown["16v16"]);
+        updateMatchup("15v15", data.breakdown["15v15"]);
+        updateMatchup("14v14", data.breakdown["14v14"]);
+      }
+
+      // Helper function to update a specific matchup (clanStars and opponentStars)
+      function updateMatchup(matchup, stats) {
+        if (stats) {
+          const clanStars = stats.clanStars || 0;
+          const opponentStars = stats.opponentStars || 0;
+
+          document.getElementById(`${matchup}-clanStars`).textContent =
+            clanStars;
+          document.getElementById(`${matchup}-opponentStars`).textContent =
+            opponentStars;
+        } else {
+          // If no data for the matchup, set stars to 0
+          document.getElementById(`${matchup}-clanStars`).textContent = 0;
+          document.getElementById(`${matchup}-opponentStars`).textContent = 0;
+        }
+      }
+
+      // Fetch the war stats for the specific clan tag
+      fetchWarStats(clanTag);
+
+      // Optionally, set an interval to fetch data every minute
+      setInterval(() => fetchWarStats(clanTag), 60000); // Every 60 seconds
+    </script>
+  </body>
+</html>
