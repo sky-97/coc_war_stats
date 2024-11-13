@@ -51,68 +51,94 @@ def get_war_stats(request, clan_tag):
     
 def calculate_war_statistics(data):
     try:
-        # Default values in case keys are missing from data
+        # Extract clan and opponent data
         clan_data = data.get("clan", {})
         opponent_data = data.get("opponent", {})
-        clan_score = clan_data.get("stars", 0)
-        opponent_score = opponent_data.get("stars", 0)
-        clan_percentage = clan_data.get("destructionPercentage", 0)
-        opponent_percentage = opponent_data.get("destructionPercentage", 0)
-        end_time_str = data.get("endTime", "")
-
-        # Lookup dictionaries for opponent and clan TH levels by tag
-        opponent_th_levels = {member["tag"]: member.get("townhallLevel", 0) for member in opponent_data.get("members", [])}
-        clan_th_levels = {member["tag"]: member.get("townhallLevel", 0) for member in clan_data.get("members", [])}
-
-        # Initialize breakdown data
+        attacks_per_member = data.get("attacksPerMember", 2)
+        
+        # Get clan and opponent details
+        clan_name = clan_data.get("name", "")
+        clan_badge_url = clan_data.get("badgeUrls", {}).get("medium", "")
+        clan_total_stars = clan_data.get("stars", 0)
+        clan_destruction_percentage = clan_data.get("destructionPercentage", 0)
+        
+        opponent_name = opponent_data.get("name", "")
+        opponent_badge_url = opponent_data.get("badgeUrls", {}).get("medium", "")
+        opponent_total_stars = opponent_data.get("stars", 0)
+        opponent_destruction_percentage = opponent_data.get("destructionPercentage", 0)
+        
+        # Initialize breakdown format
         breakdown = {
-            "17v17": {"clanStars": 0, "opponentStars": 0},
-            "16v16": {"clanStars": 0, "opponentStars": 0},
-            "15v15": {"clanStars": 0, "opponentStars": 0},
-            "14v14": {"clanStars": 0, "opponentStars": 0}
+            "17v17": {"clanStars": "0/0", "opponentStars": "0/0"},
+            "16v16": {"clanStars": "0/0", "opponentStars": "0/0"},
+            "15v15": {"clanStars": "0/0", "opponentStars": "0/0"},
+            "14v14": {"clanStars": "0/0", "opponentStars": "0/0"}
         }
-
+        
+        # Count members by town hall level to calculate max attacks
+        clan_th_counts = {}
+        opponent_th_counts = {}
+        
+        for member in clan_data.get("members", []):
+            th_level = member.get("townhallLevel", 0)
+            clan_th_counts[th_level] = clan_th_counts.get(th_level, 0) + 1
+        
+        for member in opponent_data.get("members", []):
+            th_level = member.get("townhallLevel", 0)
+            opponent_th_counts[th_level] = opponent_th_counts.get(th_level, 0) + 1
+        
+        # Initialize counters for clan and opponent three-star attacks and total attacks per matchup
+        matchup_counts = {
+            "17v17": {"clanStars": [0, clan_th_counts.get(17, 0) * attacks_per_member], "opponentStars": [0, opponent_th_counts.get(17, 0) * attacks_per_member]},
+            "16v16": {"clanStars": [0, clan_th_counts.get(16, 0) * attacks_per_member], "opponentStars": [0, opponent_th_counts.get(16, 0) * attacks_per_member]},
+            "15v15": {"clanStars": [0, clan_th_counts.get(15, 0) * attacks_per_member], "opponentStars": [0, opponent_th_counts.get(15, 0) * attacks_per_member]},
+            "14v14": {"clanStars": [0, clan_th_counts.get(14, 0) * attacks_per_member], "opponentStars": [0, opponent_th_counts.get(14, 0) * attacks_per_member]}
+        }
+        
         # Process clan's attacks
         for member in clan_data.get("members", []):
             th_level = member.get("townhallLevel", 0)
             for attack in member.get("attacks", []):
-                defender_th = opponent_th_levels.get(attack.get("defenderTag"))
-
-                # Count stars for specific TH matchups
-                if th_level == 16 and defender_th == 16:
-                    breakdown["16v16"]["clanStars"] += attack["stars"]
-                elif th_level == 15 and defender_th == 15:
-                    breakdown["15v15"]["clanStars"] += attack["stars"]
-                elif th_level == 14 and defender_th == 14:
-                    breakdown["14v14"]["clanStars"] += attack["stars"]
-
+                defender_tag = attack.get("defenderTag")
+                defender_th_level = next((opponent.get("townhallLevel") for opponent in opponent_data.get("members", []) if opponent["tag"] == defender_tag), None)
+                
+                if th_level == defender_th_level:
+                    matchup_key = f"{th_level}v{th_level}"
+                    if matchup_key in matchup_counts:
+                        if attack["stars"] == 3:
+                            matchup_counts[matchup_key]["clanStars"][0] += 1  # Increment successful 3-star attacks
+        
         # Process opponent's attacks
         for member in opponent_data.get("members", []):
             th_level = member.get("townhallLevel", 0)
             for attack in member.get("attacks", []):
-                defender_th = clan_th_levels.get(attack.get("defenderTag"))
-
-                # Count stars for specific TH matchups
-                if th_level == 16 and defender_th == 16:
-                    breakdown["16v16"]["opponentStars"] += attack["stars"]
-                elif th_level == 15 and defender_th == 15:
-                    breakdown["15v15"]["opponentStars"] += attack["stars"]
-                elif th_level == 14 and defender_th == 14:
-                    breakdown["14v14"]["opponentStars"] += attack["stars"]
-
-        # Prepare the final output structure without hardcoded names
+                defender_tag = attack.get("defenderTag")
+                defender_th_level = next((clan.get("townhallLevel") for clan in clan_data.get("members", []) if clan["tag"] == defender_tag), None)
+                
+                if th_level == defender_th_level:
+                    matchup_key = f"{th_level}v{th_level}"
+                    if matchup_key in matchup_counts:
+                        if attack["stars"] == 3:
+                            matchup_counts[matchup_key]["opponentStars"][0] += 1  # Increment successful 3-star attacks
+        
+        # Convert counts into the required "x/y" format for the breakdown
+        for key, value in matchup_counts.items():
+            breakdown[key]["clanStars"] = f"{value['clanStars'][0]}/{value['clanStars'][1]}"
+            breakdown[key]["opponentStars"] = f"{value['opponentStars'][0]}/{value['opponentStars'][1]}"
+        
+        # Prepare the final output structure
         result = {
             "clan": {
-                "name": clan_data.get("name"),
-                "badgeUrl": clan_data.get("badgeUrls", {}).get("medium", ""),
-                "totalStars": clan_score,
-                "destructionPercentage": clan_percentage
+                "name": clan_name,
+                "badgeUrl": clan_badge_url,
+                "totalStars": clan_total_stars,
+                "destructionPercentage": clan_destruction_percentage
             },
             "opponent": {
-                "name": opponent_data.get("name"),
-                "badgeUrl": opponent_data.get("badgeUrls", {}).get("medium", ""),
-                "totalStars": opponent_score,
-                "destructionPercentage": opponent_percentage
+                "name": opponent_name,
+                "badgeUrl": opponent_badge_url,
+                "totalStars": opponent_total_stars,
+                "destructionPercentage": opponent_destruction_percentage
             },
             "breakdown": breakdown
         }
@@ -120,7 +146,6 @@ def calculate_war_statistics(data):
         return result
 
     except Exception as e:
-        # Log or handle the exception and return an error message
         return {
-            "error": f"An error occurred while calculating war statistics: {str(e)}"
-        }
+            "error": f"An error occurred: {str(e)}"
+        } 
