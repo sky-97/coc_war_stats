@@ -11,7 +11,8 @@ from tzlocal import get_localzone  # To detect local timezone
 from django.shortcuts import render
 
 def war_stats(request):
-    return render(request, 'war_stats/war_stats.html')
+    clantag = request.GET.get('clantag', '')  # Get 'clantag' from query parameters
+    return render(request, 'war_stats/war_stats.html', {'clantag': clantag})
 
 def get_war_stats(request, clan_tag):
     try:

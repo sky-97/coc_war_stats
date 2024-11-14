@@ -3,21 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
     <title>War Stats</title>
     <style>
+      /* Existing styles */
       body {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
         background-color: #333333;
-        font-family: Arial, sans-serif;
+        font-family: "Geist Mono", monospace;
       }
 
       .container {
-        width: 250px;
+        width: 450px;
         background-color: #222;
-        padding: 20px;
+        padding: 60px;
         border: 2px solid #ffcc00;
         text-align: center;
         color: #ffcc00;
@@ -27,12 +34,15 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 20px;
+        font-size: 28px;
+        font-weight: bold;
       }
 
       .box {
-        width: 50px;
-        height: 50px;
+        position: relative;
+        width: 150px;
+        height: 150px;
         border: 2px solid #ffcc00;
         background-color: #000;
         color: #ffcc00;
@@ -41,27 +51,49 @@
         align-items: center;
       }
 
+      .box img {
+        max-width: 100%;
+        max-height: 100%;
+      }
+
+      .name-overlay {
+        position: absolute;
+        top: 5px;
+        width: 100%;
+        text-align: center;
+        font-weight: bold;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 5px;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
       .small-box {
-        width: 80px;
-        height: 30px;
+        width: 180px;
+        height: 50px;
         border: 2px solid #ffcc00;
         background-color: #000;
         margin: 0 5px; /* Add a small margin for space */
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #ffcc00;
+        color: white;
       }
 
       .text {
         font-size: 18px;
         margin: 10px 0;
+        font-family: "Geist Mono", monospace;
+        padding: 5px;
+       
       }
 
       .vs {
         margin: 10px 0;
         font-size: 20px;
         font-weight: bold;
+        padding: 5px;
       }
 
       .button {
@@ -69,46 +101,90 @@
         padding: 10px;
         margin: 5px 0;
         border: 2px solid #ffcc00;
-        color: #ffcc00;
+        color: white;
         background-color: #000;
         cursor: pointer;
         text-align: center;
-        font-size: 18px;
+        font-size: 20px;
       }
 
       .button-content {
         display: flex;
         justify-content: space-between;
         align-items: center;
+
       }
 
       .left-side,
       .right-side {
-        font-size: 16px;
+        font-size: 28px;
+        font-weight: bold;
+        text-align: center; /* Centers text horizontally */
+        width: 100%; /* Ensures the element takes up the full width of its container */
+      }
+      
+
+      .center-side{
+        color: #ffcc00;
+        font-size: 28px;
+        font-weight: bold;
+        {% comment %} border: 2px solid #ffcc00; {% endcomment %}
+      }
+
+      .destruction-row {
+        margin-top: 20px; /* Adjust spacing as needed */
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .destruction-row .small-box {
+        font-size: 16px;  /* Adjust font size */
+        text-align: center; /* Center text inside */
+        width: 80px; /* Adjust width if needed */
+      }
+      
+      .destruction-row .vs {
+        font-size: 18px;
+        font-weight: bold;
+        padding: 5px;
       }
     </style>
   </head>
   <body>
+     <!-- Hidden input to store the clan tag -->
+     <input type="hidden" id="clanTag" value="{{ clantag }}">
     <div class="container">
       <div class="row">
-        <div class="box" id="clanTotalStars">0</div>
+        <!-- Clan Badge with Name Overlay -->
+        <div class="box">
+          <div class="name-overlay" id="clanName">Clan Name</div>
+          <img id="clanBadgeImg" src="" alt="Clan Badge" />
+        </div>
         <div class="text">BREAKDOWN</div>
-        <div class="box" id="opponentTotalStars">0</div>
+        <!-- Opponent Badge with Name Overlay -->
+        <div class="box">
+          <div class="name-overlay" id="opponentName">Opponent Name</div>
+          <img id="opponentBadgeImg" src="" alt="Opponent Badge" />
+        </div>
       </div>
 
       <div class="row" style="justify-content: center">
-        <div class="small-box" id="clanDestructionPercentage">0%</div>
-        <div class="text" style="margin: 0 10px">%</div>
-        <div class="small-box" id="opponentDestructionPercentage">0%</div>
+        <div class="small-box" id="clanTotalStars">0</div>
+        <div class="vs">VS</div>
+        <div class="small-box" id="opponentTotalStars">0</div>
       </div>
 
-      <div class="vs">VS</div>
-
+      <div class="row destruction-row" style="justify-content: center">
+        <div class="small-box" id="clanDestructionPercentage">0%</div>
+        <div class="vs">%</div>
+        <div class="small-box" id="opponentDestructionPercentage">0%</div>
+      </div>
+      
       <!-- Matchup Buttons -->
       <div class="button" id="17v17">
         <div class="button-content">
           <span class="left-side" id="17v17-clanStars">0</span>
-          17v17
+            <span class="center-side"> 17v17</span>
           <span class="right-side" id="17v17-opponentStars">0</span>
         </div>
       </div>
@@ -116,7 +192,7 @@
       <div class="button" id="16v16">
         <div class="button-content">
           <span class="left-side" id="16v16-clanStars">0</span>
-          16v16
+          <span class="center-side"> 16v16</span>
           <span class="right-side" id="16v16-opponentStars">0</span>
         </div>
       </div>
@@ -124,7 +200,7 @@
       <div class="button" id="15v15">
         <div class="button-content">
           <span class="left-side" id="15v15-clanStars">0</span>
-          15v15
+          <span class="center-side"> 15v15</span>
           <span class="right-side" id="15v15-opponentStars">0</span>
         </div>
       </div>
@@ -132,15 +208,16 @@
       <div class="button" id="14v14">
         <div class="button-content">
           <span class="left-side" id="14v14-clanStars">0</span>
-          14v14
+          <span class="center-side"> 14v14</span>
           <span class="right-side" id="14v14-opponentStars">0</span>
         </div>
       </div>
     </div>
 
     <script>
-      // Set your clan tag here
-      const clanTag = "9C8RYV90"; // Replace with the actual clan tag
+
+        // Access the clanTag from the hidden input element
+        const clanTag = document.getElementById("clanTag").value;
 
       // Function to fetch war stats by clan tag
       function fetchWarStats(clanTag) {
@@ -164,6 +241,14 @@
         document.getElementById(
           "opponentDestructionPercentage"
         ).textContent = `${data.opponent.destructionPercentage}%`;
+
+        // Update clan and opponent badge images and names
+        document.getElementById("clanBadgeImg").src = data.clan.badgeUrl;
+        document.getElementById("opponentBadgeImg").src =
+          data.opponent.badgeUrl;
+        document.getElementById("clanName").textContent = data.clan.name;
+        document.getElementById("opponentName").textContent =
+          data.opponent.name;
 
         // Update Matchup buttons
         updateMatchup("17v17", data.breakdown["17v17"]);
