@@ -2,11 +2,7 @@
 # from rest_framework.response import Response
 from django.conf import settings
 import requests
-from urllib.parse import quote
 from django.http import JsonResponse
-from datetime import datetime
-import pytz
-from tzlocal import get_localzone  # To detect local timezone
 
 from django.shortcuts import render
 
@@ -58,18 +54,17 @@ def calculate_war_statistics(data):
         # Extract clan and opponent data
         clan_data = data.get("clan", {})
         opponent_data = data.get("opponent", {})
-        attacks_per_member = data.get("attacksPerMember", 2)
         
         # Get clan and opponent details
         clan_name = clan_data.get("name", "")
         clan_badge_url = clan_data.get("badgeUrls", {}).get("medium", "")
         clan_total_stars = clan_data.get("stars", 0)
-        clan_destruction_percentage = clan_data.get("destructionPercentage", 0)
+        clan_destruction_percentage = round(clan_data.get("destructionPercentage", 0), 2)
         
         opponent_name = opponent_data.get("name", "")
         opponent_badge_url = opponent_data.get("badgeUrls", {}).get("medium", "")
         opponent_total_stars = opponent_data.get("stars", 0)
-        opponent_destruction_percentage = opponent_data.get("destructionPercentage", 0)
+        opponent_destruction_percentage = round(opponent_data.get("destructionPercentage", 0), 2)
         
         # Initialize breakdown format
         breakdown = {
@@ -79,24 +74,12 @@ def calculate_war_statistics(data):
             "14v14": {"clanStars": "0/0", "opponentStars": "0/0"}
         }
         
-        # Count members by town hall level to calculate max attacks
-        clan_th_counts = {}
-        opponent_th_counts = {}
-        
-        for member in clan_data.get("members", []):
-            th_level = member.get("townhallLevel", 0)
-            clan_th_counts[th_level] = clan_th_counts.get(th_level, 0) + 1
-        
-        for member in opponent_data.get("members", []):
-            th_level = member.get("townhallLevel", 0)
-            opponent_th_counts[th_level] = opponent_th_counts.get(th_level, 0) + 1
-        
         # Initialize counters for clan and opponent three-star attacks and total attacks per matchup
         matchup_counts = {
-            "17v17": {"clanStars": [0, clan_th_counts.get(17, 0) * attacks_per_member], "opponentStars": [0, opponent_th_counts.get(17, 0) * attacks_per_member]},
-            "16v16": {"clanStars": [0, clan_th_counts.get(16, 0) * attacks_per_member], "opponentStars": [0, opponent_th_counts.get(16, 0) * attacks_per_member]},
-            "15v15": {"clanStars": [0, clan_th_counts.get(15, 0) * attacks_per_member], "opponentStars": [0, opponent_th_counts.get(15, 0) * attacks_per_member]},
-            "14v14": {"clanStars": [0, clan_th_counts.get(14, 0) * attacks_per_member], "opponentStars": [0, opponent_th_counts.get(14, 0) * attacks_per_member]}
+            "17v17": {"clanStars": [0, 0], "opponentStars": [0, 0]},
+            "16v16": {"clanStars": [0, 0], "opponentStars": [0, 0]},
+            "15v15": {"clanStars": [0, 0], "opponentStars": [0, 0]},
+            "14v14": {"clanStars": [0, 0], "opponentStars": [0, 0]}
         }
         
         # Process clan's attacks
@@ -109,6 +92,7 @@ def calculate_war_statistics(data):
                 if th_level == defender_th_level:
                     matchup_key = f"{th_level}v{th_level}"
                     if matchup_key in matchup_counts:
+                        matchup_counts[matchup_key]["clanStars"][1] += 1  # Increment total attacks
                         if attack["stars"] == 3:
                             matchup_counts[matchup_key]["clanStars"][0] += 1  # Increment successful 3-star attacks
         
@@ -122,6 +106,7 @@ def calculate_war_statistics(data):
                 if th_level == defender_th_level:
                     matchup_key = f"{th_level}v{th_level}"
                     if matchup_key in matchup_counts:
+                        matchup_counts[matchup_key]["opponentStars"][1] += 1  # Increment total attacks
                         if attack["stars"] == 3:
                             matchup_counts[matchup_key]["opponentStars"][0] += 1  # Increment successful 3-star attacks
         
@@ -152,4 +137,4 @@ def calculate_war_statistics(data):
     except Exception as e:
         return {
             "error": f"An error occurred: {str(e)}"
-        } 
+        }

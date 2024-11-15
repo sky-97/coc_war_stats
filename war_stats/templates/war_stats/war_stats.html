@@ -17,7 +17,7 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background-color: #333333;
+        background-color: black;
         font-family: "Geist Mono", monospace;
         margin: 0;
       }
@@ -25,7 +25,7 @@
       .container {
         width: 90%;
         max-width: 450px;
-        background-color: #222;
+        background-color: black;
         padding: 20px;
         border: 2px solid #ffcc00;
         text-align: center;
@@ -42,26 +42,24 @@
       }
 
       .box {
-        position: relative;
+        display: flex;
+        flex-direction: column; /* Stack image and name vertically */
+        align-items: center;
+        justify-content: center;
         width: 40%;
         height: 150px;
         border: 2px solid #ffcc00;
         background-color: #000;
         color: #ffcc00;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         margin: 10px;
       }
 
       .box img {
         max-width: 100%;
-        max-height: 100%;
+        max-height: calc(100% - 30px); /* Adjust to leave space for name */
       }
 
       .name-overlay {
-        position: absolute;
-        top: 5px;
         width: 100%;
         text-align: center;
         font-weight: bold;
@@ -72,8 +70,8 @@
       }
 
       .small-box {
-        width: 40%;
-        height: 50px;
+        width: 20%;
+        height: 70px;
         border: 2px solid #ffcc00;
         background-color: #000;
         margin: 5px;
@@ -230,7 +228,7 @@
   </head>
   <body>
     <!-- Hidden input to store the clan tag -->
-    <input type="hidden" id="clanTag" value="{{ clantag }}">
+    <input type="hidden" id="clanTag" value="{{ clantag }}" />
     <div class="container">
       <div class="row">
         <!-- Clan Badge with Name Overlay -->
